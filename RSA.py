@@ -5,46 +5,36 @@ from util import inverso
 from util import mcd
 
 
-def generate_keypair(p, q):
-    if p == q:
-        raise ValueError('p and q cannot be equal')
+def generar_publica(fi, n):
+    """Funcion que genera la llave publica a partir de la funcion de euler y n"""
+    # se elige un entero e entre 2 y fi tal que sean coprimos
+    e = random.randrange(2, fi)
 
-    # 1) n = p*q
-    n = p * q
-
-    # 2) Calculate Euler fucntion (Phi is the coefficient of n)
-    phi = (p - 1) * (q - 1)
-
-    # 3) Choose an integer e such that e and phi(n) are coprime
-    e = random.randrange(1, phi)
-
-    # 3.1) Use Euclid's Algorithm to verify that e and phi(n) are comprime
-    g = mcd(e, phi)
+    # se calcula el maximo comun divisor para verificar si son coprimos
+    #  de no serlo se elige otro entero e hasta encontrar alguno
+    g = mcd(e, fi)
     while g != 1:
-        e = random.randrange(1, phi)
-        g = mcd(e, phi)
+        e = random.randrange(2, fi)
+        g = mcd(e, fi)
 
-    # 4) Use Extended Euclid's Algorithm to generate the private key
-    d = inverso(e, phi)
-
-    # Return public and private keypair
-    # Public key is (e, n) and private key is (d, n)
-    return ((e, n), (d, n))
+    # Se regresan los valores encontrados
+    return e, n
 
 
-'''
-Encrypting a message
-'''
+def generar_privada(e, fi, n):
+    """Funcion que genera la llave privada a partir del e y fi"""
+    # Se calcula el inverso multiplicativo de e
+    d = inverso(e, fi)
+
+    return d, n
 
 
-def codificar(pk, mensaje):
+def codificar(e, n, mensaje):
     """Funcion que codifica un mensaje dada la llave publica"""
-    # Unpack the key into it's components
-    key, n = pk
-    # Convert each letter in the plaintext to numbers based on the character using a^b mod m
+    # Se toma cada caracter del mensaje y se codifica con la llave publica
     # C    =       m      ^  e (mod n)
-    mensaje_codificado = [ex(ord(char), key, n) for char in mensaje]
-    # Return the array of bytes
+    mensaje_codificado = [ex(ord(char), e, n) for char in mensaje]
+    # Regresa la lista con los numeros que representan a cada caracter del mensaje
     return mensaje_codificado
 
 
@@ -52,25 +42,49 @@ def decodificar(d, n, mensaje_codificado):
     """Funcion que decodifica un mensaje dada la llave privada"""
     # Se toma cada numero en la lista del mensaje_codificado y se decodifica con la llave privada
     # m   =       c    ^   d (mod n)
-    plain = [chr(ex(char, d, n)) for char in mensaje_codificado]
-    # Return the array of bytes as a string
-    return ''.join(plain)
+    mensaje = [chr(ex(char, d, n)) for char in mensaje_codificado]
+    # Regresa la cadena formada por los caracteres de la lista
+    return ''.join(mensaje)
 
 
 if __name__ == '__main__':
-    '''
-    Detect if the script is being run directly by the user
-    '''
-    print "RSA Encrypter/ Decrypter"
-    p = generar_primo()
-    q = generar_primo()
-    print "Generating your public/private keypairs now . . ."
-    public, private = generate_keypair(p, q)
-    print "Your public key is ", public, " and your private key is ", private
-    message = raw_input("Enter a message to encrypt with your private key: ")
-    encrypted_msg = codificar(private, message)
-    print "Your encrypted message is: "
-    print ''.join(map(lambda x: str(x), encrypted_msg))
-    print "Decrypting message with public key ", public, " . . ."
-    print "Your message is:"
-    print decodificar(public[0], public[1], encrypted_msg)
+    """
+    Integrantes:
+        Maria Dadmy Nolasco Botello
+        Derian Estrada
+    """
+    print "Algoritmo RSA\nGenerando primos..."
+
+    while True:
+        p = generar_primo()
+        q = generar_primo()
+
+        # si p y q son iguales entonces se debe encontrar otro par de numeros primos
+        #  de lo contrario se rompe el ciclo
+        if p != q:
+            break
+
+    print "p = ", p
+    print "q = ", q
+
+    n = p * q
+    # Se calcula la funcion de Euler
+    fi = (p - 1) * (q - 1)
+
+    print "\nGenerando llaves..."
+    e, n = generar_publica(fi, n)
+    print "Llave publica:\ne = ", e, "\nn = ", n
+
+    d, n = generar_privada(e, fi, n)
+    print "Llave privada:\nd = ", d, "\nn = ", n
+
+    print "\nProbando la codificacion con llave publica..."
+    mensaje = raw_input("Ingresa un mensaje: ")
+    print "Codificando con llave publica..."
+    mensaje_codificado = codificar(e, n, mensaje)
+    print "Mensaje codificado:\n", ''.join(map(lambda x: str(x), mensaje_codificado))
+
+    print "\nProbando la decodificacion con llave privada..."
+    print "Decodificando con llave privada..."
+    mensaje_decodificado = decodificar(d, n, mensaje_codificado)
+    print "Mensaje decodificado:\n", mensaje_decodificado
