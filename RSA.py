@@ -1,73 +1,8 @@
-'''
-Code adapted from GitHubGist:
-https://gist.github.com/JonCooperWorks/5314103
-'''
-
 import random
 from util import generar_primo
 from util import ex
-
-'''
-Euclid's algorithm for determining the greatest common divisor
-Use iteration to make it faster for larger integers
-'''
-
-
-def gcd(a, b):
-    while b != 0:
-        a, b = b, a % b
-    return a
-
-
-'''
-Euclid's extended algorithm for finding the multiplicative inverse of two numbers
-'''
-
-
-def multiplicative_inverse(e, phi):
-    d = 0
-    x1 = 0
-    x2 = 1
-    y1 = 1
-    temp_phi = phi
-
-    while e > 0:
-        temp1 = temp_phi / e
-        temp2 = temp_phi - temp1 * e
-        temp_phi = e
-        e = temp2
-
-        x = x2 - temp1 * x1
-        y = d - temp1 * y1
-
-        x2 = x1
-        x1 = x
-        d = y1
-        y1 = y
-
-    if temp_phi == 1:
-        return d + phi
-
-
-'''
-Tests to see if a number is prime.
-'''
-
-
-def is_prime(num):
-    if num == 2:
-        return True
-    if num < 2 or num % 2 == 0:
-        return False
-    for n in xrange(3, int(num ** 0.5) + 2, 2):
-        if num % n == 0:
-            return False
-    return True
-
-
-'''
-Generatung public and private key
-'''
+from util import inverso
+from util import mcd
 
 
 def generate_keypair(p, q):
@@ -84,13 +19,13 @@ def generate_keypair(p, q):
     e = random.randrange(1, phi)
 
     # 3.1) Use Euclid's Algorithm to verify that e and phi(n) are comprime
-    g = gcd(e, phi)
+    g = mcd(e, phi)
     while g != 1:
         e = random.randrange(1, phi)
-        g = gcd(e, phi)
+        g = mcd(e, phi)
 
     # 4) Use Extended Euclid's Algorithm to generate the private key
-    d = multiplicative_inverse(e, phi)
+    d = inverso(e, phi)
 
     # Return public and private keypair
     # Public key is (e, n) and private key is (d, n)
@@ -102,27 +37,22 @@ Encrypting a message
 '''
 
 
-def encrypt(pk, plaintext):
+def codificar(pk, mensaje):
+    """Funcion que codifica un mensaje dada la llave publica"""
     # Unpack the key into it's components
     key, n = pk
     # Convert each letter in the plaintext to numbers based on the character using a^b mod m
     # C    =       m      ^  e (mod n)
-    cipher = [ex(ord(char), key, n) for char in plaintext]
+    mensaje_codificado = [ex(ord(char), key, n) for char in mensaje]
     # Return the array of bytes
-    return cipher
+    return mensaje_codificado
 
 
-'''
-Decrypting a message
-'''
-
-
-def decrypt(pk, ciphertext):
-    # Unpack the key into its components
-    key, n = pk
-    # Generate the plaintext based on the ciphertext and key using a^b mod m
+def decodificar(d, n, mensaje_codificado):
+    """Funcion que decodifica un mensaje dada la llave privada"""
+    # Se toma cada numero en la lista del mensaje_codificado y se decodifica con la llave privada
     # m   =       c    ^   d (mod n)
-    plain = [chr(ex(char, key, n)) for char in ciphertext]
+    plain = [chr(ex(char, d, n)) for char in mensaje_codificado]
     # Return the array of bytes as a string
     return ''.join(plain)
 
@@ -138,9 +68,9 @@ if __name__ == '__main__':
     public, private = generate_keypair(p, q)
     print "Your public key is ", public, " and your private key is ", private
     message = raw_input("Enter a message to encrypt with your private key: ")
-    encrypted_msg = encrypt(private, message)
+    encrypted_msg = codificar(private, message)
     print "Your encrypted message is: "
     print ''.join(map(lambda x: str(x), encrypted_msg))
     print "Decrypting message with public key ", public, " . . ."
     print "Your message is:"
-    print decrypt(public, encrypted_msg)
+    print decodificar(public[0], public[1], encrypted_msg)

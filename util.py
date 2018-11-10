@@ -2,9 +2,15 @@ from random import randint
 from random import getrandbits
 
 
-def jacobi(a, n):
-    # int ans;
+def mcd(a, b):
+    """Funcion que calcula el maximo comun divisor"""
+    while b != 0:
+        a, b = b, a % b
+    return a
 
+
+def jacobi(a, n):
+    """Funcion que evalua el simbolo de jacobi"""
     if a == 0:
         # a if condition else b
         # ans = (n == 1) ? 1 : 0;
@@ -15,7 +21,6 @@ def jacobi(a, n):
             ans = 1
         elif modulo == 3 or modulo == 5:
             ans = -1
-
     elif a >= n:
         ans = jacobi(a % n, n)
     elif a % 2 == 0:
@@ -26,36 +31,38 @@ def jacobi(a, n):
 
 
 def inverso(a, m):
-        c1 = 1
-        c2 = -(m // a)  # coeficiente de a y b respectivamente
-        t1 = 0
-        t2 = 1  # coeficientes penultima corrida
-        r = m % a  # residuo, asignamos 1 como condicion de entrada
-        x = a;
-        y = r;
-        while r != 0:
-            c = x // y  # cociente
-            r = x % y  # residuo
-            # guardamos valores temporales de los coeficientes
-            # multiplicamos los coeficiente por -1*cociente de la division
-            c1 *= -c
-            c2 *= -c
-            # sumamos la corrida anterior
-            c1 += t1
-            c2 += t2
-            # actualizamos corrida anterior
-            t1 = -(c1 - t1) // c
-            t2 = -(c2 - t2) // c
-            x = y
-            y = r
+    """Funcion que calcula el inverso multiplicativo de un numero (mod m)"""
+    c1 = 1
+    c2 = -(m // a)  # coeficiente de a y b respectivamente
+    t1 = 0
+    t2 = 1  # coeficientes penultima corrida
+    r = m % a  # residuo, asignamos 1 como condicion de entrada
+    x = a;
+    y = r;
+    while r != 0:
+        c = x // y  # cociente
+        r = x % y  # residuo
+        # guardamos valores temporales de los coeficientes
+        # multiplicamos los coeficiente por -1*cociente de la division
+        c1 *= -c
+        c2 *= -c
+        # sumamos la corrida anterior
+        c1 += t1
+        c2 += t2
+        # actualizamos corrida anterior
+        t1 = -(c1 - t1) // c
+        t2 = -(c2 - t2) // c
+        x = y
+        y = r
 
-        if x != 1:  # residuo anterior es 1 , son primos relativos y el inverso existe
-            return None
+    if x != 1:  # residuo anterior es 1 , son primos relativos y el inverso existe
+        return None
 
-        return (m + t2) % m if t2 < 0 else t2
+    return (m + t2) % m if t2 < 0 else t2
 
 
 def ex(a, b, m):
+    """Funcion que realiza exponenciacion binaria y modular"""
     r = 1
     while (b):
         if (b & 1):
@@ -66,8 +73,10 @@ def ex(a, b, m):
 
 
 def solovay_strassen(n, k):
+    """Funcion que realiza la prueba Solovay-Strassen para verificar la primalidad de un numero"""
     # Si el numero es par, entonces no es primo
-    if n % 2 == 0: return False
+    if n % 2 == 0:
+        return False
 
     for i in range(k):
         # Se obtiene un b aleatorio tal que 0 < b < n
@@ -88,6 +97,8 @@ def solovay_strassen(n, k):
 
 
 def generar_primo():
+    """Funcion que genera un primo de aproximadamente 105 digitos"""
+    # Se trata de encontrar un primo 10000000 veces, de lo contrario se devuelve None
     for i in range(10000000):
         posible = getrandbits(350)
 
