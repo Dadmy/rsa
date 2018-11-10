@@ -4,6 +4,8 @@ https://gist.github.com/JonCooperWorks/5314103
 '''
 
 import random
+from util import generar_primo
+from util import ex
 
 '''
 Euclid's algorithm for determining the greatest common divisor
@@ -69,9 +71,7 @@ Generatung public and private key
 
 
 def generate_keypair(p, q):
-    if not (is_prime(p) and is_prime(q)):
-        raise ValueError('Both numbers must be prime.')
-    elif p == q:
+    if p == q:
         raise ValueError('p and q cannot be equal')
 
     # 1) n = p*q
@@ -107,7 +107,7 @@ def encrypt(pk, plaintext):
     key, n = pk
     # Convert each letter in the plaintext to numbers based on the character using a^b mod m
     # C    =       m      ^  e (mod n)
-    cipher = [(ord(char) ** key) % n for char in plaintext]
+    cipher = [ex(ord(char), key, n) for char in plaintext]
     # Return the array of bytes
     return cipher
 
@@ -122,7 +122,7 @@ def decrypt(pk, ciphertext):
     key, n = pk
     # Generate the plaintext based on the ciphertext and key using a^b mod m
     # m   =       c    ^   d (mod n)
-    plain = [chr((char ** key) % n) for char in ciphertext]
+    plain = [chr(ex(char, key, n)) for char in ciphertext]
     # Return the array of bytes as a string
     return ''.join(plain)
 
@@ -132,8 +132,8 @@ if __name__ == '__main__':
     Detect if the script is being run directly by the user
     '''
     print "RSA Encrypter/ Decrypter"
-    p = int(raw_input("Enter a prime number (17, 19, 23, etc): "))
-    q = int(raw_input("Enter another prime number (Not one you entered above): "))
+    p = generar_primo()
+    q = generar_primo()
     print "Generating your public/private keypairs now . . ."
     public, private = generate_keypair(p, q)
     print "Your public key is ", public, " and your private key is ", private
